@@ -43,6 +43,6 @@ egeo = [
   "resources/collectors/*.md",
   "resources/collectors/fixtures/*.json",
   "resources/examples/*.yaml",
-  "resources/schema/*.json",
+  "resources/geo-output/schema/*.json",
   "resources/SUBSTRATE.md",
 ]

@@ -120,7 +120,7 @@ class PythonRuntime(RuntimeAdapter):
     ):
         super().__init__(root=root)
         self.prompts_dir = resource_root() / "prompts"
-        self.schema_dir = resource_root() / "schema"
+        self.schema_dir = resource_root() / "geo-output" / "schema"
         self.ranker_model = ranker_model or os.environ.get("RANKER_MODEL", "gpt-4o")
         self.rewriter_model = rewriter_model or os.environ.get("REWRITER_MODEL", "gpt-4o")
         self.temperature = temperature

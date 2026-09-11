@@ -34,15 +34,11 @@ RESOURCE_FILES = [
     "collectors/fixtures/serp_serpbase_response.json",
     "SUBSTRATE.md",
     "examples/project.yaml",
-]
-
-#: (repo-root canonical, packaged copy) when the relative paths differ.
-RELOCATED_RESOURCE_FILES = [
-    ("geo-output/schema/Article.json", "schema/Article.json"),
-    ("geo-output/schema/FAQPage.json", "schema/FAQPage.json"),
-    ("geo-output/schema/Organization.json", "schema/Organization.json"),
-    ("geo-output/schema/Product.json", "schema/Product.json"),
-    ("geo-output/schema/Service.json", "schema/Service.json"),
+    "geo-output/schema/Article.json",
+    "geo-output/schema/FAQPage.json",
+    "geo-output/schema/Organization.json",
+    "geo-output/schema/Product.json",
+    "geo-output/schema/Service.json",
 ]
 
 
@@ -89,7 +85,7 @@ class ResourceRootTests(unittest.TestCase):
 class DriftGuardTests(unittest.TestCase):
     def test_packaged_copies_match_repo_canonical_files(self) -> None:
         mismatches = []
-        pairs = [(rel, rel) for rel in RESOURCE_FILES] + RELOCATED_RESOURCE_FILES
+        pairs = [(rel, rel) for rel in RESOURCE_FILES]
         for canonical_rel, packaged_rel in pairs:
             canonical = REPO_ROOT / canonical_rel
             packaged = PACKAGED / packaged_rel

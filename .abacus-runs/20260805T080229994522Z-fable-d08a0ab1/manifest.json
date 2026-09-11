@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "status": "succeeded",
+  "run_id": "20260805T080229994522Z-fable-d08a0ab1",
+  "created_at": "2026-08-05T08:02:29.994866+00:00",
+  "updated_at": "2026-08-05T08:09:47.442815+00:00",
+  "runner": "abacus-run",
+  "requested_model_alias": "fable",
+  "requested_model_label": "Fable 5",
+  "abacus_model_arg": "CLAUDE_V5_FABLE_THINKING",
+  "expected_model_line": "CLAUDE_V5_FABLE_THINKING",
+  "cwd": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents",
+  "run_dir": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260805T080229994522Z-fable-d08a0ab1",
+  "prompt_source": "/tmp/fable-egeo-site-review.md",
+  "prompt_copy": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260805T080229994522Z-fable-d08a0ab1/prompt.md",
+  "raw_log": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260805T080229994522Z-fable-d08a0ab1/raw.log",
+  "manifest_path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260805T080229994522Z-fable-d08a0ab1/manifest.json",
+  "declared_output_files": [
+    "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/site-review.md"
+  ],
+  "resume_requested": null,
+  "timeout_seconds": 1800,
+  "command_preview": [
+    "/home/hermes-2/.abacusai/bin/abacusai",
+    "-p",
+    "--model",
+    "CLAUDE_V5_FABLE_THINKING",
+    "--dangerously-skip-permissions",
+    "<prompt>"
+  ],
+  "output_files_before": [
+    {
+      "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/site-review.md",
+      "exists": false,
+      "is_file": false,
+      "size": null,
+      "sha256": null
+    }
+  ],
+  "started_at": "2026-08-05T08:02:29.995479+00:00",
+  "completed_at": "2026-08-05T08:09:47.442836+00:00",
+  "elapsed_seconds": 437.449,
+  "exit_code": 0,
+  "actual_model_line": "CLAUDE_V5_FABLE_THINKING",
+  "model_verified": true,
+  "artifact_verified": true,
+  "credits_used": 3143.04,
+  "conversation_id": "g1mw4wbtq87w",
+  "output_files_status": [
+    {
+      "before": {
+        "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/site-review.md",
+        "exists": false,
+        "is_file": false,
+        "size": null,
+        "sha256": null
+      },
+      "after": {
+        "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/site-review.md",
+        "exists": true,
+        "is_file": true,
+        "size": 11081,
+        "sha256": "03e2057f02d4daf365b3d0e50eb2b46a3c45cad003f9cd3cb5782371a180ef4a"
+      },
+      "disposition": "created",
+      "verified": true
+    }
+  ]
+}

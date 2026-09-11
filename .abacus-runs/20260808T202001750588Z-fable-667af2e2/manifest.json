@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "status": "artifact_failed",
+  "run_id": "20260808T202001750588Z-fable-667af2e2",
+  "created_at": "2026-08-08T20:20:01.755750+00:00",
+  "updated_at": "2026-08-08T20:26:56.001079+00:00",
+  "runner": "abacus-run",
+  "requested_model_alias": "fable",
+  "requested_model_label": "Fable 5",
+  "abacus_model_arg": "CLAUDE_V5_FABLE_THINKING",
+  "expected_model_line": "CLAUDE_V5_FABLE_THINKING",
+  "cwd": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents",
+  "run_dir": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T202001750588Z-fable-667af2e2",
+  "prompt_source": "/tmp/fable-egeo-layout-midpoint-task.md",
+  "prompt_copy": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T202001750588Z-fable-667af2e2/prompt.md",
+  "raw_log": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T202001750588Z-fable-667af2e2/raw.log",
+  "manifest_path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T202001750588Z-fable-667af2e2/manifest.json",
+  "declared_output_files": [
+    "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh"
+  ],
+  "resume_requested": null,
+  "timeout_seconds": 2700,
+  "command_preview": [
+    "/home/hermes-2/.abacusai/bin/abacusai",
+    "-p",
+    "--model",
+    "CLAUDE_V5_FABLE_THINKING",
+    "--dangerously-skip-permissions",
+    "<prompt>"
+  ],
+  "output_files_before": [
+    {
+      "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh",
+      "exists": true,
+      "is_file": true,
+      "size": 2847,
+      "sha256": "b61b3bc391c49f889a0326fee52a1ba3ca94c49b6aede4e9681f6b80c3c71900"
+    }
+  ],
+  "started_at": "2026-08-08T20:20:01.757062+00:00",
+  "completed_at": "2026-08-08T20:26:56.001095+00:00",
+  "elapsed_seconds": 414.251,
+  "exit_code": 0,
+  "actual_model_line": "CLAUDE_V5_FABLE_THINKING",
+  "model_verified": true,
+  "artifact_verified": false,
+  "credits_used": 2745.63,
+  "conversation_id": "84d9975b3",
+  "output_files_status": [
+    {
+      "before": {
+        "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh",
+        "exists": true,
+        "is_file": true,
+        "size": 2847,
+        "sha256": "b61b3bc391c49f889a0326fee52a1ba3ca94c49b6aede4e9681f6b80c3c71900"
+      },
+      "after": {
+        "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh",
+        "exists": true,
+        "is_file": true,
+        "size": 2847,
+        "sha256": "b61b3bc391c49f889a0326fee52a1ba3ca94c49b6aede4e9681f6b80c3c71900"
+      },
+      "disposition": "unchanged",
+      "verified": false
+    }
+  ]
+}

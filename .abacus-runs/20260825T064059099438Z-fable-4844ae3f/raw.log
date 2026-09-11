@@ -1,0 +1,14 @@
+
+Update available: 2.6.6 → 2.6.9 (latest). Restart to auto-update.
+model: CLAUDE_V5_FABLE_THINKING | cwd: /home/hermes-2/workspace/projects/github/mverab/eGEOagents | conversation: 14d362efb5
+title: DSH Plugin Viability
+  ● Write(path="/home/hermes-2/Sync/mkt/egeo-expansion/2026-08-25-dsh-plugi, append=false)
+
+---
+Listo. Escribí el dictamen completo en `~/Sync/mkt/egeo-expansion/2026-08-25-dsh-plugin-viability.md`.
+
+Resumen: **NO VIABLE** ahora — DSH está en developer preview con breaking changes garantizados y compite por el mismo tiempo que el WIP que sí mueve el gate. Recomendación única: mergear `feat/portable-project-contract` + publicar `egeo` en PyPI. Forma barata futura: bundle delgado npm que hace shell-out al CLI, desbloqueado cuando DSH salga de preview **y** Gate A se sostenga 3 mediciones consecutivas con PyPI publicado. No toqué ningún repo ni escribí código.
+Credits used: 586.54
+
+To resume Session:
+abacusai -p --resume 14d362efb5
