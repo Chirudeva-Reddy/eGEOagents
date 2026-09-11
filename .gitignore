@@ -26,6 +26,10 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-.eggs/.abacus-runs/
+.eggs/
 .wrangler/
-site/.abacus-runs/
+site/
+
+# Local worker run artifacts (never commit)
+.abacus-runs/
+
