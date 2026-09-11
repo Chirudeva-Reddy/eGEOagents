@@ -1,0 +1,4 @@
+# Keep the packaged runtime resources in the sdist as well as the wheel.
+# The drift guard in tests/test_resources.py keeps these copies byte-identical
+# to the repo-root canonical files.
+recursive-include egeo/resources *

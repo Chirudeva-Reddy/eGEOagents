@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from . import repo_root
+from . import repo_root, resource_root
 from .agents import Analyzer, Indexer, Ranker, Rewriter
 
 __all__ = [
@@ -119,8 +119,8 @@ class PythonRuntime(RuntimeAdapter):
         temperature: float = 0.0,
     ):
         super().__init__(root=root)
-        self.prompts_dir = self.root / "prompts"
-        self.schema_dir = self.root / "geo-output" / "schema"
+        self.prompts_dir = resource_root() / "prompts"
+        self.schema_dir = resource_root() / "schema"
         self.ranker_model = ranker_model or os.environ.get("RANKER_MODEL", "gpt-4o")
         self.rewriter_model = rewriter_model or os.environ.get("REWRITER_MODEL", "gpt-4o")
         self.temperature = temperature

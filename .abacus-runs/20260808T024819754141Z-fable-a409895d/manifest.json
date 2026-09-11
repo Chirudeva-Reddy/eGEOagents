@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "status": "running",
+  "run_id": "20260808T024819754141Z-fable-a409895d",
+  "created_at": "2026-08-08T02:48:19.754499+00:00",
+  "updated_at": "2026-08-08T02:48:19.755105+00:00",
+  "runner": "abacus-run",
+  "requested_model_alias": "fable",
+  "requested_model_label": "Fable 5",
+  "abacus_model_arg": "CLAUDE_V5_FABLE_THINKING",
+  "expected_model_line": "CLAUDE_V5_FABLE_THINKING",
+  "cwd": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents",
+  "run_dir": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T024819754141Z-fable-a409895d",
+  "prompt_source": "/tmp/fable-egeo-landing-v2-task.md",
+  "prompt_copy": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T024819754141Z-fable-a409895d/prompt.md",
+  "raw_log": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T024819754141Z-fable-a409895d/raw.log",
+  "manifest_path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/.abacus-runs/20260808T024819754141Z-fable-a409895d/manifest.json",
+  "declared_output_files": [
+    "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh"
+  ],
+  "resume_requested": null,
+  "timeout_seconds": 2700,
+  "command_preview": [
+    "/home/hermes-2/.abacusai/bin/abacusai",
+    "-p",
+    "--model",
+    "CLAUDE_V5_FABLE_THINKING",
+    "--dangerously-skip-permissions",
+    "<prompt>"
+  ],
+  "output_files_before": [
+    {
+      "path": "/home/hermes-2/workspace/projects/github/mverab/eGEOagents/site/verify.sh",
+      "exists": true,
+      "is_file": true,
+      "size": 1203,
+      "sha256": "289a004c2587eaae2da47f01c60615fb2695c57b009a15f3d7ad1cd73eee89a4"
+    }
+  ],
+  "started_at": "2026-08-08T02:48:19.755099+00:00"
+}
