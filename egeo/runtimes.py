@@ -119,8 +119,11 @@ class PythonRuntime(RuntimeAdapter):
         temperature: float = 0.0,
     ):
         super().__init__(root=root)
-        self.prompts_dir = resource_root() / "prompts"
-        self.schema_dir = resource_root() / "geo-output" / "schema"
+        # An explicit `root` keeps full control of prompts/schema locations;
+        # the default resolves via resource_root() so installed wheels work.
+        base = self.root if root is not None else resource_root()
+        self.prompts_dir = base / "prompts"
+        self.schema_dir = base / "geo-output" / "schema"
         self.ranker_model = ranker_model or os.environ.get("RANKER_MODEL", "gpt-4o")
         self.rewriter_model = rewriter_model or os.environ.get("REWRITER_MODEL", "gpt-4o")
         self.temperature = temperature

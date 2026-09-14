@@ -82,6 +82,25 @@ class ResourceRootTests(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
 
 
+class RuntimeRootOverrideTests(unittest.TestCase):
+    def test_explicit_root_controls_prompts_and_schema_dirs(self) -> None:
+        from egeo import runtimes
+
+        with tempfile.TemporaryDirectory() as tmp:
+            custom = Path(tmp)
+            (custom / "prompts").mkdir()
+            (custom / "prompts" / "ranker_system.txt").write_text("custom", encoding="utf-8")
+            runtime = runtimes.PythonRuntime(root=custom)
+            self.assertEqual(runtime.prompts_dir, custom / "prompts")
+            self.assertEqual(runtime.schema_dir, custom / "geo-output" / "schema")
+
+    def test_default_root_uses_resource_root(self) -> None:
+        from egeo import runtimes
+
+        runtime = runtimes.PythonRuntime()
+        self.assertEqual(runtime.prompts_dir, egeo.resource_root() / "prompts")
+
+
 class DriftGuardTests(unittest.TestCase):
     def test_packaged_copies_match_repo_canonical_files(self) -> None:
         mismatches = []

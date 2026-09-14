@@ -108,5 +108,10 @@ jobs:
           EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo --version
           EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop doctor
           EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo optimize "$GITHUB_WORKSPACE/examples/sample-input.md" --out-dir /tmp/egeo-wheel-smoke
+          # The wheel-emitted JSON-LD must validate with the repo checker
+          /tmp/egeo-wheel-venv/bin/python "$GITHUB_WORKSPACE/scripts/validate_jsonld.py" /tmp/egeo-wheel-smoke/schema/*.json
           EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo evaluate --dataset "$GITHUB_WORKSPACE/eval/datasets/geo_smoke.jsonl" --limit 3
           EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop collect serp --query smoke --fixture "$GITHUB_WORKSPACE/collectors/fixtures/serp_brave_response.json"
+          # decide must work from the packaged example project contract
+          cp "$GITHUB_WORKSPACE/examples/project.yaml" /tmp/egeo-wheel-home/project.yaml
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop decide --dry-run
