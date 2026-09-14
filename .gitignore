@@ -29,3 +29,6 @@ dist/
 .eggs/.abacus-runs/
 .wrangler/
 site/.abacus-runs/
+
+# Local worker run artifacts at the repo root (never commit)
+.abacus-runs/

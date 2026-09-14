@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Wheel packaging:** the PyPI wheel now ships the runtime resources
+  (`prompts/`, `collectors/` incl. fixtures, `SUBSTRATE.md`,
+  `examples/project.yaml`) under `egeo/resources/`, and resource resolution
+  falls back to the packaged copies when the repository tree is absent
+  (`egeo.resource_root()`). The 2.0.0 wheel could not run `optimize`,
+  `evaluate`, `loop collect`, `loop decide` or a clean `loop doctor` outside
+  the repo (see `docs/baseline-evidence-loop-2026-09-11.md`). A CI wheel
+  install smoke test now guards the packaged workflow, and
+  `tests/test_resources.py` fails if the packaged copies drift from the
+  repo-root canonical files.
+
 ### Added
 
 - **Loop mode** (opt-in): eGEOagents can now run as a continuous loop instead of

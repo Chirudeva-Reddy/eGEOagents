@@ -17,7 +17,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 # Repository root = parent of this package directory. Adding it to sys.path lets
 # ``import geo_eval`` / ``import llm_client`` succeed even when the CLI is run
@@ -32,4 +32,18 @@ def repo_root() -> Path:
     return _REPO_ROOT
 
 
-__all__ = ["__version__", "repo_root"]
+def resource_root() -> Path:
+    """Return the directory that ships the runtime resources.
+
+    In a source checkout that is the repository root (``prompts/``,
+    ``collectors/``, ``SUBSTRATE.md``, ``examples/`` live there and stay
+    user-editable). In an installed wheel those files are packaged under
+    ``egeo/resources/``; when the repo-root copies are absent (a real
+    installation, not an editable/dev tree), fall back to the packaged copies.
+    """
+    if (_REPO_ROOT / "prompts").is_dir():
+        return _REPO_ROOT
+    return Path(__file__).resolve().parent / "resources"
+
+
+__all__ = ["__version__", "repo_root", "resource_root"]

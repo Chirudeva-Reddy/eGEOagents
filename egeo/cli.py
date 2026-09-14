@@ -20,9 +20,9 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from . import __version__, repo_root
+from . import __version__, repo_root, resource_root
 
-_DEFAULT_PROMPTS = str(repo_root() / "prompts")
+_DEFAULT_PROMPTS = str(resource_root() / "prompts")
 
 
 def _add_evaluate_parser(sub: argparse._SubParsersAction) -> None:

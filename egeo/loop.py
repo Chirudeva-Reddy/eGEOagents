@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from . import repo_root, substrate_lint, workspace
+from . import repo_root, resource_root, substrate_lint, workspace
 
 #: Collector name → module file under ``collectors/``.
 COLLECTORS = {"serp": "serp.py", "page": "page.py"}
@@ -46,7 +46,7 @@ def load_collector(name: str):
     """Import a collector module from ``collectors/`` for in-process invocation."""
     if name not in COLLECTORS:
         raise KeyError(name)
-    directory = repo_root() / "collectors"
+    directory = resource_root() / "collectors"
     path = directory / COLLECTORS[name]
     if not path.is_file():
         raise FileNotFoundError(path)
@@ -302,14 +302,14 @@ def diagnose(home: Path) -> Tuple[List[str], List[str], Dict[str, Any]]:
     overrides = sorted(p.name for p in workspace.prompts_dir(home).glob("*.txt")) if workspace.prompts_dir(home).is_dir() else []
     facts["prompt_overrides"] = overrides
 
-    repo_substrate = repo_root() / workspace.SUBSTRATE_NAME
+    canonical_substrate = resource_root() / workspace.SUBSTRATE_NAME
     workspace_substrate = home / workspace.SUBSTRATE_NAME
-    if repo_substrate.is_file() and workspace_substrate.is_file():
-        drift = repo_substrate.read_text(encoding="utf-8") != workspace_substrate.read_text(encoding="utf-8")
+    if canonical_substrate.is_file() and workspace_substrate.is_file():
+        drift = canonical_substrate.read_text(encoding="utf-8") != workspace_substrate.read_text(encoding="utf-8")
         facts["substrate_drift"] = drift
         if drift:
             warnings.append(
-                "workspace SUBSTRATE.md differs from the repo copy: review the contract, "
+                "workspace SUBSTRATE.md differs from the packaged/repo copy: review the contract, "
                 "then replace the workspace copy to adopt it"
             )
 
@@ -425,8 +425,9 @@ def cmd_decide(args: argparse.Namespace) -> int:
         print(f"egeo loop decide: invalid project contract: {exc}", file=sys.stderr)
         return 1
     if project is None:
+        example = resource_root() / "examples" / "project.yaml"
         print(
-            "egeo loop decide: project.yaml is required. Copy examples/project.yaml "
+            f"egeo loop decide: project.yaml is required. Copy {example} "
             "into $EGEO_HOME and fill the active project's identity and targets.",
             file=sys.stderr,
         )

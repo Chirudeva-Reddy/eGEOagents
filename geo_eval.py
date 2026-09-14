@@ -26,6 +26,17 @@ class QueryExample:
     target_id: Optional[str] = None
 
 
+def _default_prompts_dir() -> str:
+    """Default prompts directory: repo ``prompts/`` in a checkout, packaged
+    ``egeo/resources/prompts`` in an installed wheel."""
+    try:
+        from egeo import resource_root
+
+        return str(resource_root() / "prompts")
+    except Exception:  # pragma: no cover - geo_eval used without the package
+        return str(Path(__file__).parent / "prompts")
+
+
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
@@ -441,7 +452,7 @@ def main() -> None:
 
     eval_p = sub.add_parser("evaluate")
     eval_p.add_argument("--dataset", required=True)
-    eval_p.add_argument("--prompts", default=str(Path(__file__).parent / "prompts"))
+    eval_p.add_argument("--prompts", default=_default_prompts_dir())
     eval_p.add_argument("--ranker-model", default=os.environ.get("RANKER_MODEL", "gpt-4o"))
     eval_p.add_argument("--rewriter-model", default=os.environ.get("REWRITER_MODEL", "gpt-4o"))
     eval_p.add_argument("--temperature", type=float, default=0.0)
@@ -452,7 +463,7 @@ def main() -> None:
     opt_p = sub.add_parser("optimize")
     opt_p.add_argument("--train", required=True)
     opt_p.add_argument("--val", required=True)
-    opt_p.add_argument("--prompts", default=str(Path(__file__).parent / "prompts"))
+    opt_p.add_argument("--prompts", default=_default_prompts_dir())
     opt_p.add_argument("--ranker-model", default=os.environ.get("RANKER_MODEL", "gpt-4o"))
     opt_p.add_argument("--rewriter-model", default=os.environ.get("REWRITER_MODEL", "gpt-4o"))
     opt_p.add_argument("--meta-model", default=os.environ.get("META_MODEL", "gpt-4o"))

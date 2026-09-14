@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "egeo"
-version = "2.0.0"
+version = "2.0.1"
 description = "E-GEO: runtime-agnostic Generative Engine Optimization toolkit and CLI."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,3 +32,17 @@ Documentation = "https://egeoagents.com/docs/getting-started/"
 # install; `python -m egeo` additionally bootstraps sys.path (see egeo/__init__.py).
 packages = ["egeo"]
 py-modules = ["geo_eval", "llm_client"]
+
+# Runtime resources (prompts, collectors, SUBSTRATE.md, example project.yaml)
+# must ship inside the wheel: the CLI resolves them via egeo.resource_root()
+# when the repository tree is absent (see tests/test_resources.py).
+[tool.setuptools.package-data]
+egeo = [
+  "resources/prompts/*.txt",
+  "resources/collectors/*.py",
+  "resources/collectors/*.md",
+  "resources/collectors/fixtures/*.json",
+  "resources/examples/*.yaml",
+  "resources/geo-output/schema/*.json",
+  "resources/SUBSTRATE.md",
+]

@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-from . import repo_root
+from . import repo_root, resource_root
 
 #: Environment variable that overrides the default workspace location.
 HOME_ENV = "EGEO_HOME"
@@ -207,7 +207,7 @@ def bootstrap(home: Optional[Path] = None) -> Dict[str, Any]:
         config.write_text(_CONFIG_TEMPLATE, encoding="utf-8")
         created.append(CONFIG_NAME)
 
-    substrate_src = repo_root() / SUBSTRATE_NAME
+    substrate_src = resource_root() / SUBSTRATE_NAME
     substrate_dst = home / SUBSTRATE_NAME
     if not substrate_dst.is_file() and substrate_src.is_file():
         substrate_dst.write_text(substrate_src.read_text(encoding="utf-8"), encoding="utf-8")

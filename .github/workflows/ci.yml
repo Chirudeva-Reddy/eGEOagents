@@ -93,3 +93,25 @@ jobs:
           python -m egeo optimize examples/sample-input.md --out-dir /tmp/egeo-smoke
           # The emitted JSON-LD must validate with the same checker used above
           python scripts/validate_jsonld.py /tmp/egeo-smoke/schema/*.json
+
+      # 7. Wheel install smoke test: the published package must work outside
+      #    the repo tree (regression guard for the 2.0.0 packaging failure,
+      #    see docs/baseline-evidence-loop-2026-09-11.md)
+      - name: Wheel install smoke test (isolated venv, outside repo)
+        env:
+          GEO_EVAL_MOCK: "1"
+        run: |
+          python -m pip wheel . --no-deps -w /tmp/egeo-dist
+          python -m venv /tmp/egeo-wheel-venv
+          /tmp/egeo-wheel-venv/bin/pip install /tmp/egeo-dist/*.whl
+          cd /tmp
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo --version
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop doctor
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo optimize "$GITHUB_WORKSPACE/examples/sample-input.md" --out-dir /tmp/egeo-wheel-smoke
+          # The wheel-emitted JSON-LD must validate with the repo checker
+          /tmp/egeo-wheel-venv/bin/python "$GITHUB_WORKSPACE/scripts/validate_jsonld.py" /tmp/egeo-wheel-smoke/schema/*.json
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo evaluate --dataset "$GITHUB_WORKSPACE/eval/datasets/geo_smoke.jsonl" --limit 3
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop collect serp --query smoke --fixture "$GITHUB_WORKSPACE/collectors/fixtures/serp_brave_response.json"
+          # decide must work from the packaged example project contract
+          cp "$GITHUB_WORKSPACE/examples/project.yaml" /tmp/egeo-wheel-home/project.yaml
+          EGEO_HOME=/tmp/egeo-wheel-home /tmp/egeo-wheel-venv/bin/egeo loop decide --dry-run
