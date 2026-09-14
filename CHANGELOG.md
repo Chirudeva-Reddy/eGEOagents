@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-09-14
+
+First release where the published PyPI package actually runs the full CLI
+outside the repository tree. Includes the loop capabilities merged since
+v2.0.0, which the broken 2.0.0 wheel never delivered in working form.
+
 ### Fixed
 
 - **Wheel packaging:** the PyPI wheel now ships the runtime resources
@@ -19,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   install smoke test now guards the packaged workflow, and
   `tests/test_resources.py` fails if the packaged copies drift from the
   repo-root canonical files.
+- An explicit `PythonRuntime(root=...)` keeps full control of prompt/schema
+  locations; `resource_root()` is only the default.
 
 ### Added
 
@@ -34,9 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     plus `egeo/substrate_lint.py` to enforce the mechanically checkable parts
     (frontmatter, domain charters, `LOG.md` grammar).
   - **`egeo loop` command group** (`egeo/loop.py`): `doctor` (bootstrap +
-    health check), `collect <serp|page>` (collector pass), and `run <domain>`
-    (resolve and print the run plan; `--dry-run` writes nothing). LLM-free by
-    design — the interpretive work is performed by the agent.
+    health check), `collect <serp|page>` (collector pass), `run <domain>`
+    (resolve and print the run plan; `--dry-run` writes nothing), and
+    `decide` (deterministic next-action ranking over collector data, the
+    portable `project.yaml` contract and the append-only outcome ledger).
+    LLM-free by design — the interpretive work is performed by the agent.
+  - **Portable project contract** (`$EGEO_HOME/project.yaml`, example in
+    `examples/project.yaml`): project identity, tracked pages and query
+    records move out of the machinery `config.yaml`, validated on load.
   - **Collectors** (`collectors/`): deterministic, budget-aware, append-only
     JSONL senses — `serp` (Brave API, top-10 + target position) and `page`
     (content hash, title, meta description, JSON-LD types, word count), both with
@@ -53,8 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `$EGEO_HOME/prompts/` overrides its repo `prompts/` counterpart, and
   `optimize` writes its result there, so the repo `prompts/` stay pristine in
   loop mode. With no workspace, behavior is identical to before.
-
-### Fixed
 
 ## [2.0.0] - 2026-06-30
 
