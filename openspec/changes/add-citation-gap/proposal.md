@@ -14,9 +14,9 @@ Product PR: backend evaluator, input/output contracts, tests, CLI integration, a
 Local demo: a separate local workspace outside the product repository. No frontend source, dependencies, recordings, captured datasets, or demo server enter the product PR or release. This initial PR publishes only the specification for owner review; it does not authorize implementation, merge, or deployment.
 
 ## Impact
-- New capability: citation-gap (proposed; not implemented).
+- New capability: citation-gap (implemented on this branch; live Jev unverified).
 - Expected integration: optional evaluator adjacent to existing pipeline and action ledger; do not replace deterministic decision rules.
 - No SaaS, authentication, CMS integration, automatic publication, multi-engine monitoring, or production frontend.
 
 ## Status
-Design proposal only. Local visual demo requirement confirmed by owner; implementation and Jev benchmarking not performed.
+Owner approved implementation. Backend evaluator + CLI are implemented on this branch. Local visual demo lives outside the product repository. Real TypeSafe/Jev smoke is unverified without `TYPESAFE_API_KEY`. No merge or deploy.
