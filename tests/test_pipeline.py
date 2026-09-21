@@ -57,6 +57,17 @@ def test_extract_frontmatter_toml():
     assert raw.startswith("+++")
     assert raw.strip().endswith("+++")
     assert "TOML Content Guide" in body
+    assert parsed.get("title") == "TOML Content Guide"
+    assert parsed.get("description") == "Testing TOML frontmatter preservation."
+
+
+def test_extract_frontmatter_mismatched_delimiters():
+    # Opening --- with closing +++ must not be extracted as valid frontmatter
+    mismatched = "---\ntitle: Broken\n+++\n# Content"
+    raw, body, parsed = _extract_frontmatter(mismatched)
+    assert raw == ""
+    assert body == mismatched
+    assert parsed == {}
 
 
 def test_extract_frontmatter_none():
@@ -67,17 +78,27 @@ def test_extract_frontmatter_none():
 
 
 def test_derive_title_and_body_uses_frontmatter_title():
-    title, desc, raw = _derive_title_and_body(SAMPLE_YAML_FRONTMATTER)
+    title, desc, raw, parsed = _derive_title_and_body(SAMPLE_YAML_FRONTMATTER)
     assert title == "Understanding GEO in 2026"
     assert "Generative Engine Optimization" in desc
     assert raw.startswith("---")
+    assert parsed.get("author") == "Jane Doe"
+
+
+def test_derive_title_and_body_uses_toml_frontmatter_title():
+    title, desc, raw, parsed = _derive_title_and_body(SAMPLE_TOML_FRONTMATTER)
+    assert title == "TOML Content Guide"
+    assert "Here is the body content" in desc
+    assert raw.startswith("+++")
+    assert parsed.get("description") == "Testing TOML frontmatter preservation."
 
 
 def test_derive_title_and_body_fallback_to_h1():
-    title, desc, raw = _derive_title_and_body(SAMPLE_NO_FRONTMATTER)
+    title, desc, raw, parsed = _derive_title_and_body(SAMPLE_NO_FRONTMATTER)
     assert title == "Plain Markdown Guide"
     assert "just direct markdown text" in desc
     assert raw == ""
+    assert parsed == {}
 
 
 def test_markdown_to_html_converts_semantic_elements():
@@ -93,15 +114,25 @@ Here is a [link](https://example.com).
 - First item
 - Second item
 
+1. Step one
+2. Step two
+
+| Feature | Score |
+|---------|-------|
+| Speed   | 95    |
+| Quality | 98    |
+
 ```python
 def test():
     return 42
 ```
 """
-    html = _markdown_to_html(md, title="Test Document")
+    html = _markdown_to_html(md, title="Test Document", metadata={"description": "Test doc description", "author": "Test Author"})
 
     assert "<!DOCTYPE html>" in html
     assert "<title>Test Document</title>" in html
+    assert '<meta name="description" content="Test doc description">' in html
+    assert '<meta name="author" content="Test Author">' in html
     assert "<h1>Main Title</h1>" in html
     assert "<h2>Sub Heading</h2>" in html
     assert "<strong>bold</strong>" in html
@@ -111,6 +142,11 @@ def test():
     assert "<blockquote>" in html
     assert "<ul>" in html
     assert "<li>First item</li>" in html
+    assert "<ol>" in html
+    assert "<li>Step one</li>" in html
+    assert "<table>" in html
+    assert "<th>Feature</th>" in html
+    assert "<td>Speed</td>" in html
     assert "<pre><code>" in html
 
 
@@ -159,5 +195,7 @@ def test_optimize_content_exports_html(monkeypatch):
         html_content = html_file.read_text(encoding="utf-8")
         assert "<!DOCTYPE html>" in html_content
         assert "<title>Understanding GEO in 2026</title>" in html_content
+        assert '<meta name="author" content="Jane Doe">' in html_content
+        assert '<meta name="keywords" content="geo, seo, ai">' in html_content
         assert "<article>" in html_content
         assert "<h1>Understanding GEO in 2026</h1>" in html_content

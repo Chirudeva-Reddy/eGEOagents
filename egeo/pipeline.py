@@ -101,31 +101,43 @@ def _slugify(name: str) -> str:
 
 def _extract_frontmatter(text: str) -> tuple[str, str, Dict[str, Any]]:
     """Extract frontmatter (YAML or TOML), returning (raw_frontmatter, body, parsed_dict)."""
-    m = re.match(r"^(?:---|\+\+\+)\s*\n(.*?)\n(?:---|\+\+\+)\s*(?:\n|$)", text, re.DOTALL)
+    m = re.match(r"^(---|(?:\+\+\+))\s*\n(.*?)\n\1\s*(?:\n|$)", text, re.DOTALL)
     if not m:
         return "", text, {}
 
+    delimiter = m.group(1)
+    content_fm = m.group(2)
     raw = text[:m.end()]
     body = text[m.end():]
     parsed: Dict[str, Any] = {}
     try:
-        import yaml
-        data = yaml.safe_load(m.group(1))
-        if isinstance(data, dict):
-            parsed = data
+        if delimiter == "+++":
+            try:
+                import tomllib
+                data = tomllib.loads(content_fm)
+            except ImportError:
+                import tomli as tomllib
+                data = tomllib.loads(content_fm)
+            if isinstance(data, dict):
+                parsed = data
+        else:
+            import yaml
+            data = yaml.safe_load(content_fm)
+            if isinstance(data, dict):
+                parsed = data
     except Exception:
         pass
     return raw, body, parsed
 
 
 def _strip_frontmatter_keep(text: str) -> str:
-    m = re.match(r"^(?:---|\+\+\+)\s*\n.*?\n(?:---|\+\+\+)\s*(?:\n|$)", text, re.DOTALL)
+    m = re.match(r"^(---|(?:\+\+\+))\s*\n.*?\n\1\s*(?:\n|$)", text, re.DOTALL)
     if m:
         return text[m.end():]
     return text
 
 
-def _derive_title_and_body(content: str) -> tuple[str, str, str]:
+def _derive_title_and_body(content: str) -> tuple[str, str, str, Dict[str, Any]]:
     raw_frontmatter, body, parsed_fm = _extract_frontmatter(content)
     lines = body.splitlines()
     title = ""
@@ -148,24 +160,37 @@ def _derive_title_and_body(content: str) -> tuple[str, str, str]:
     description = "\n".join(lines[body_start:]).strip() or body.strip()
     if not title:
         title = "Untitled"
-    return title, description, raw_frontmatter
+    return title, description, raw_frontmatter, parsed_fm
 
 
-def _markdown_to_html(md_text: str, title: str = "") -> str:
-    """Convert markdown text to clean semantic HTML while preserving formatting."""
+def _markdown_to_html(md_text: str, title: str = "", metadata: Optional[Dict[str, Any]] = None) -> str:
+    """Convert markdown text to clean semantic HTML while preserving formatting and metadata."""
     try:
         import markdown
         html_body = markdown.markdown(md_text, extensions=["extra", "codehilite"])
     except ImportError:
         html_body = _basic_markdown_to_html(md_text)
 
-    page_title = title or "Optimized Content"
+    page_title = title or (metadata.get("title") if metadata else None) or "Optimized Content"
+    meta_tags = []
+    if metadata:
+        if metadata.get("description"):
+            meta_tags.append(f'  <meta name="description" content="{metadata["description"]}">')
+        if metadata.get("author"):
+            meta_tags.append(f'  <meta name="author" content="{metadata["author"]}">')
+        if metadata.get("tags"):
+            tags_val = ", ".join(metadata["tags"]) if isinstance(metadata["tags"], list) else str(metadata["tags"])
+            meta_tags.append(f'  <meta name="keywords" content="{tags_val}">')
+        if metadata.get("date"):
+            meta_tags.append(f'  <meta name="date" content="{metadata["date"]}">')
+    meta_tags_str = ("\n" + "\n".join(meta_tags)) if meta_tags else ""
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="eGEOagents">
+  <meta name="generator" content="eGEOagents">{meta_tags_str}
   <title>{page_title}</title>
   <style>
     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #24292e; }}
@@ -176,6 +201,10 @@ def _markdown_to_html(md_text: str, title: str = "") -> str:
     code {{ padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: rgba(27,31,35,0.05); border-radius: 3px; font-family: monospace; }}
     pre {{ padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45; background-color: #f6f8fa; border-radius: 3px; }}
     pre code {{ background-color: transparent; padding: 0; }}
+    table {{ border-collapse: collapse; width: 100%; margin: 16px 0; }}
+    th, td {{ border: 1px solid #dfe2e5; padding: 6px 13px; text-align: left; }}
+    th {{ background-color: #f6f8fa; font-weight: 600; }}
+    ol, ul {{ padding-left: 2em; margin: 16px 0; }}
   </style>
 </head>
 <body>
@@ -188,12 +217,29 @@ def _markdown_to_html(md_text: str, title: str = "") -> str:
 
 
 def _basic_markdown_to_html(md_text: str) -> str:
-    """Built-in lightweight markdown to HTML converter."""
+    """Built-in lightweight markdown to HTML converter supporting headings, lists, tables, and blockquotes."""
     lines = md_text.splitlines()
     html_lines = []
-    in_list = False
+    in_ul = False
+    in_ol = False
     in_blockquote = False
     in_code_block = False
+    in_table = False
+
+    def close_blocks():
+        nonlocal in_ul, in_ol, in_blockquote, in_table
+        if in_ul:
+            html_lines.append("</ul>")
+            in_ul = False
+        if in_ol:
+            html_lines.append("</ol>")
+            in_ol = False
+        if in_blockquote:
+            html_lines.append("</blockquote>")
+            in_blockquote = False
+        if in_table:
+            html_lines.append("</tbody></table>")
+            in_table = False
 
     for line in lines:
         stripped = line.strip()
@@ -203,12 +249,7 @@ def _basic_markdown_to_html(md_text: str) -> str:
                 html_lines.append("</code></pre>")
                 in_code_block = False
             else:
-                if in_list:
-                    html_lines.append("</ul>")
-                    in_list = False
-                if in_blockquote:
-                    html_lines.append("</blockquote>")
-                    in_blockquote = False
+                close_blocks()
                 html_lines.append("<pre><code>")
                 in_code_block = True
             continue
@@ -218,31 +259,42 @@ def _basic_markdown_to_html(md_text: str) -> str:
             continue
 
         if not stripped:
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
-            if in_blockquote:
-                html_lines.append("</blockquote>")
-                in_blockquote = False
+            close_blocks()
             continue
 
         h_match = re.match(r"^(#{1,6})\s+(.*)$", stripped)
         if h_match:
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
-            if in_blockquote:
-                html_lines.append("</blockquote>")
-                in_blockquote = False
+            close_blocks()
             level = len(h_match.group(1))
             h_content = _inline_md_to_html(h_match.group(2))
             html_lines.append(f"<h{level}>{h_content}</h{level}>")
             continue
 
+        # Tables: | Col 1 | Col 2 |
+        if stripped.startswith("|") and stripped.endswith("|"):
+            if re.match(r"^\|[\s\-:|]+\|$", stripped):
+                # Separator row (|---|---|)
+                continue
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if not in_table:
+                close_blocks()
+                html_lines.append("<table>")
+                html_lines.append("<thead><tr>")
+                for cell in cells:
+                    html_lines.append(f"<th>{_inline_md_to_html(cell)}</th>")
+                html_lines.append("</tr></thead>")
+                html_lines.append("<tbody>")
+                in_table = True
+            else:
+                html_lines.append("<tr>")
+                for cell in cells:
+                    html_lines.append(f"<td>{_inline_md_to_html(cell)}</td>")
+                html_lines.append("</tr>")
+            continue
+
         if stripped.startswith(">"):
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
+            if in_ul or in_ol or in_table:
+                close_blocks()
             if not in_blockquote:
                 html_lines.append("<blockquote>")
                 in_blockquote = True
@@ -250,30 +302,33 @@ def _basic_markdown_to_html(md_text: str) -> str:
             html_lines.append(f"<p>{bq_text}</p>")
             continue
 
+        # Unordered list: - or * or +
         if re.match(r"^[-*+]\s+", stripped):
-            if in_blockquote:
-                html_lines.append("</blockquote>")
-                in_blockquote = False
-            if not in_list:
+            if in_blockquote or in_ol or in_table:
+                close_blocks()
+            if not in_ul:
                 html_lines.append("<ul>")
-                in_list = True
+                in_ul = True
             item_text = _inline_md_to_html(re.sub(r"^[-*+]\s+", "", stripped))
             html_lines.append(f"<li>{item_text}</li>")
             continue
 
-        if in_list:
-            html_lines.append("</ul>")
-            in_list = False
-        if in_blockquote:
-            html_lines.append("</blockquote>")
-            in_blockquote = False
+        # Ordered list: 1. or 2.
+        ol_match = re.match(r"^\d+\.\s+", stripped)
+        if ol_match:
+            if in_blockquote or in_ul or in_table:
+                close_blocks()
+            if not in_ol:
+                html_lines.append("<ol>")
+                in_ol = True
+            item_text = _inline_md_to_html(re.sub(r"^\d+\.\s+", "", stripped))
+            html_lines.append(f"<li>{item_text}</li>")
+            continue
 
+        close_blocks()
         html_lines.append(f"<p>{_inline_md_to_html(stripped)}</p>")
 
-    if in_list:
-        html_lines.append("</ul>")
-    if in_blockquote:
-        html_lines.append("</blockquote>")
+    close_blocks()
     if in_code_block:
         html_lines.append("</code></pre>")
 
@@ -371,7 +426,7 @@ def optimize_content(
     export_format: str = "markdown",
 ) -> OptimizeResult:
     """Run analyze → rank → rewrite → rank → index and write artifacts."""
-    title, description, raw_frontmatter = _derive_title_and_body(content)
+    title, description, raw_frontmatter, parsed_fm = _derive_title_and_body(content)
     effective_query = query or f"best {title}".strip()
 
     analyzer = runtime.make_analyzer()
@@ -416,7 +471,11 @@ def optimize_content(
 
     if export_format == "html":
         optimized_path = optimized_dir / f"{slug}.html"
-        html_content = _markdown_to_html(f"# {title}\n\n{rewrite.rewritten_description}", title=title)
+        html_content = _markdown_to_html(
+            f"# {title}\n\n{rewrite.rewritten_description}",
+            title=title,
+            metadata=parsed_fm,
+        )
         optimized_path.write_text(html_content, encoding="utf-8")
     else:
         optimized_path = optimized_dir / f"{slug}.md"
