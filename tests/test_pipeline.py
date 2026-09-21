@@ -199,3 +199,19 @@ def test_optimize_content_exports_html(monkeypatch):
         assert '<meta name="keywords" content="geo, seo, ai">' in html_content
         assert "<article>" in html_content
         assert "<h1>Understanding GEO in 2026</h1>" in html_content
+
+
+def test_markdown_to_html_escapes_metadata():
+    """Frontmatter values must be HTML-escaped in <title> and meta tags."""
+    hostile = {
+        "title": 'Poem "The <Best> & Worst"',
+        "description": 'Saying "a < b" is not markup',
+        "author": 'Vera <hola@example.com> "tester"',
+    }
+    out = _markdown_to_html("# Heading\n\nBody.", title=hostile["title"], metadata=hostile)
+    assert "<title>Poem &quot;The &lt;Best&gt; &amp; Worst&quot;</title>" in out
+    assert 'content="Saying &quot;a &lt; b&quot; is not markup' in out
+    assert 'content="Vera &lt;hola@example.com&gt; &quot;tester&quot;"' in out
+    # The un-escaped raw values must NOT appear in the document.
+    assert 'content="Vera <hola@example.com>' not in out
+    assert "The <Best>" not in out

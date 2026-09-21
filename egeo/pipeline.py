@@ -12,6 +12,7 @@ producing a before/after ranking signal.
 """
 from __future__ import annotations
 
+import html
 import json
 import re
 from dataclasses import dataclass
@@ -130,13 +131,6 @@ def _extract_frontmatter(text: str) -> tuple[str, str, Dict[str, Any]]:
     return raw, body, parsed
 
 
-def _strip_frontmatter_keep(text: str) -> str:
-    m = re.match(r"^(---|(?:\+\+\+))\s*\n.*?\n\1\s*(?:\n|$)", text, re.DOTALL)
-    if m:
-        return text[m.end():]
-    return text
-
-
 def _derive_title_and_body(content: str) -> tuple[str, str, str, Dict[str, Any]]:
     raw_frontmatter, body, parsed_fm = _extract_frontmatter(content)
     lines = body.splitlines()
@@ -171,18 +165,20 @@ def _markdown_to_html(md_text: str, title: str = "", metadata: Optional[Dict[str
     except ImportError:
         html_body = _basic_markdown_to_html(md_text)
 
-    page_title = title or (metadata.get("title") if metadata else None) or "Optimized Content"
+    page_title = html.escape(
+        str(title or (metadata.get("title") if metadata else None) or "Optimized Content")
+    )
     meta_tags = []
     if metadata:
         if metadata.get("description"):
-            meta_tags.append(f'  <meta name="description" content="{metadata["description"]}">')
+            meta_tags.append(f'  <meta name="description" content="{html.escape(str(metadata["description"]))}">')
         if metadata.get("author"):
-            meta_tags.append(f'  <meta name="author" content="{metadata["author"]}">')
+            meta_tags.append(f'  <meta name="author" content="{html.escape(str(metadata["author"]))}">')
         if metadata.get("tags"):
             tags_val = ", ".join(metadata["tags"]) if isinstance(metadata["tags"], list) else str(metadata["tags"])
-            meta_tags.append(f'  <meta name="keywords" content="{tags_val}">')
+            meta_tags.append(f'  <meta name="keywords" content="{html.escape(tags_val)}">')
         if metadata.get("date"):
-            meta_tags.append(f'  <meta name="date" content="{metadata["date"]}">')
+            meta_tags.append(f'  <meta name="date" content="{html.escape(str(metadata["date"]))}">')
     meta_tags_str = ("\n" + "\n".join(meta_tags)) if meta_tags else ""
 
     return f"""<!DOCTYPE html>
