@@ -99,31 +99,197 @@ def _slugify(name: str) -> str:
     return slug or "content"
 
 
+def _extract_frontmatter(text: str) -> tuple[str, str, Dict[str, Any]]:
+    """Extract frontmatter (YAML or TOML), returning (raw_frontmatter, body, parsed_dict)."""
+    m = re.match(r"^(?:---|\+\+\+)\s*\n(.*?)\n(?:---|\+\+\+)\s*(?:\n|$)", text, re.DOTALL)
+    if not m:
+        return "", text, {}
+
+    raw = text[:m.end()]
+    body = text[m.end():]
+    parsed: Dict[str, Any] = {}
+    try:
+        import yaml
+        data = yaml.safe_load(m.group(1))
+        if isinstance(data, dict):
+            parsed = data
+    except Exception:
+        pass
+    return raw, body, parsed
+
+
 def _strip_frontmatter_keep(text: str) -> str:
-    m = re.match(r"^---\s*\n.*?\n---\s*(?:\n|$)", text, re.DOTALL)
+    m = re.match(r"^(?:---|\+\+\+)\s*\n.*?\n(?:---|\+\+\+)\s*(?:\n|$)", text, re.DOTALL)
     if m:
         return text[m.end():]
     return text
 
 
-def _derive_title_and_body(content: str) -> tuple[str, str]:
-    body = _strip_frontmatter_keep(content)
+def _derive_title_and_body(content: str) -> tuple[str, str, str]:
+    raw_frontmatter, body, parsed_fm = _extract_frontmatter(content)
     lines = body.splitlines()
     title = ""
     body_start = 0
+
+    if parsed_fm.get("title"):
+        title = str(parsed_fm["title"]).strip()
+
     for i, ln in enumerate(lines):
         if ln.strip().startswith("#"):
-            title = ln.lstrip("#").strip()
+            if not title:
+                title = ln.lstrip("#").strip()
             body_start = i + 1
             break
         if ln.strip():
-            title = ln.strip()
+            if not title:
+                title = ln.strip()
             body_start = i + 1
             break
     description = "\n".join(lines[body_start:]).strip() or body.strip()
     if not title:
         title = "Untitled"
-    return title, description
+    return title, description, raw_frontmatter
+
+
+def _markdown_to_html(md_text: str, title: str = "") -> str:
+    """Convert markdown text to clean semantic HTML while preserving formatting."""
+    try:
+        import markdown
+        html_body = markdown.markdown(md_text, extensions=["extra", "codehilite"])
+    except ImportError:
+        html_body = _basic_markdown_to_html(md_text)
+
+    page_title = title or "Optimized Content"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="eGEOagents">
+  <title>{page_title}</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #24292e; }}
+    h1, h2, h3, h4 {{ margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; }}
+    h1 {{ font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }}
+    h2 {{ font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }}
+    blockquote {{ padding: 0 1em; color: #6a737d; border-left: 0.25em solid #dfe2e5; margin: 16px 0; }}
+    code {{ padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: rgba(27,31,35,0.05); border-radius: 3px; font-family: monospace; }}
+    pre {{ padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45; background-color: #f6f8fa; border-radius: 3px; }}
+    pre code {{ background-color: transparent; padding: 0; }}
+  </style>
+</head>
+<body>
+<article>
+{html_body}
+</article>
+</body>
+</html>
+"""
+
+
+def _basic_markdown_to_html(md_text: str) -> str:
+    """Built-in lightweight markdown to HTML converter."""
+    lines = md_text.splitlines()
+    html_lines = []
+    in_list = False
+    in_blockquote = False
+    in_code_block = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.startswith("```"):
+            if in_code_block:
+                html_lines.append("</code></pre>")
+                in_code_block = False
+            else:
+                if in_list:
+                    html_lines.append("</ul>")
+                    in_list = False
+                if in_blockquote:
+                    html_lines.append("</blockquote>")
+                    in_blockquote = False
+                html_lines.append("<pre><code>")
+                in_code_block = True
+            continue
+
+        if in_code_block:
+            html_lines.append(line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+            continue
+
+        if not stripped:
+            if in_list:
+                html_lines.append("</ul>")
+                in_list = False
+            if in_blockquote:
+                html_lines.append("</blockquote>")
+                in_blockquote = False
+            continue
+
+        h_match = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if h_match:
+            if in_list:
+                html_lines.append("</ul>")
+                in_list = False
+            if in_blockquote:
+                html_lines.append("</blockquote>")
+                in_blockquote = False
+            level = len(h_match.group(1))
+            h_content = _inline_md_to_html(h_match.group(2))
+            html_lines.append(f"<h{level}>{h_content}</h{level}>")
+            continue
+
+        if stripped.startswith(">"):
+            if in_list:
+                html_lines.append("</ul>")
+                in_list = False
+            if not in_blockquote:
+                html_lines.append("<blockquote>")
+                in_blockquote = True
+            bq_text = _inline_md_to_html(stripped.lstrip("> ").strip())
+            html_lines.append(f"<p>{bq_text}</p>")
+            continue
+
+        if re.match(r"^[-*+]\s+", stripped):
+            if in_blockquote:
+                html_lines.append("</blockquote>")
+                in_blockquote = False
+            if not in_list:
+                html_lines.append("<ul>")
+                in_list = True
+            item_text = _inline_md_to_html(re.sub(r"^[-*+]\s+", "", stripped))
+            html_lines.append(f"<li>{item_text}</li>")
+            continue
+
+        if in_list:
+            html_lines.append("</ul>")
+            in_list = False
+        if in_blockquote:
+            html_lines.append("</blockquote>")
+            in_blockquote = False
+
+        html_lines.append(f"<p>{_inline_md_to_html(stripped)}</p>")
+
+    if in_list:
+        html_lines.append("</ul>")
+    if in_blockquote:
+        html_lines.append("</blockquote>")
+    if in_code_block:
+        html_lines.append("</code></pre>")
+
+    return "\n".join(html_lines)
+
+
+def _inline_md_to_html(text: str) -> str:
+    """Format inline markdown elements: links, bold, italic, code."""
+    t = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    t = re.sub(r"`([^`]+)`", r"<code>\1</code>", t)
+    t = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", t)
+    t = re.sub(r"__([^_]+)__", r"<strong>\1</strong>", t)
+    t = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", t)
+    t = re.sub(r"_([^_]+)_", r"<em>\1</em>", t)
+    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', t)
+    return t
 
 
 def _short_description(text: str, *, limit: int = 280) -> str:
@@ -202,9 +368,10 @@ def optimize_content(
     output_dir: Path,
     query: Optional[str] = None,
     schema_type: str = "Article",
+    export_format: str = "markdown",
 ) -> OptimizeResult:
     """Run analyze → rank → rewrite → rank → index and write artifacts."""
-    title, description = _derive_title_and_body(content)
+    title, description, raw_frontmatter = _derive_title_and_body(content)
     effective_query = query or f"best {title}".strip()
 
     analyzer = runtime.make_analyzer()
@@ -241,10 +408,19 @@ def optimize_content(
 
     written: List[Path] = []
 
-    optimized_path = optimized_dir / f"{slug}.md"
-    optimized_path.write_text(
-        f"# {title}\n\n{rewrite.rewritten_description}\n", encoding="utf-8"
-    )
+    body_md = f"# {title}\n\n{rewrite.rewritten_description}\n"
+    if raw_frontmatter:
+        full_md = f"{raw_frontmatter.rstrip()}\n\n{body_md}"
+    else:
+        full_md = body_md
+
+    if export_format == "html":
+        optimized_path = optimized_dir / f"{slug}.html"
+        html_content = _markdown_to_html(f"# {title}\n\n{rewrite.rewritten_description}", title=title)
+        optimized_path.write_text(html_content, encoding="utf-8")
+    else:
+        optimized_path = optimized_dir / f"{slug}.md"
+        optimized_path.write_text(full_md, encoding="utf-8")
     written.append(optimized_path)
 
     schema_path = schema_out_dir / f"{slug}.json"
